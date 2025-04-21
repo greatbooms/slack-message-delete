@@ -22,12 +22,10 @@
 
 ```bash
 # 프로젝트 복제
-git clone <repository-url>
+git clone https://github.com/greatbooms/slack-message-delete.git
 cd slack-message-delete
 
 # 패키지 설치
-npm install
-# 또는
 yarn install
 ```
 
@@ -84,8 +82,6 @@ ALLOWED_ORIGINS=http://localhost:3000,https://your-domain.com
 
 ```bash
 # 개발 서버 실행
-npm run start:dev
-# 또는
 yarn start:dev
 ```
 
@@ -93,13 +89,9 @@ yarn start:dev
 
 ```bash
 # 빌드
-npm run build
-# 또는
 yarn build
 
 # 프로덕션 서버 실행
-npm run start:prod
-# 또는
 yarn start:prod
 ```
 
