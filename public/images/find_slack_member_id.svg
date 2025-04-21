@@ -1,0 +1,51 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 -->
+  <rect width="800" height="500" fill="#f8f8f8"/>
+  
+  <!-- 슬랙 화면 모의 -->
+  <rect x="50" y="50" width="700" height="400" rx="10" ry="10" fill="#ffffff" stroke="#e0e0e0" stroke-width="2"/>
+  
+  <!-- 헤더 -->
+  <rect x="50" y="50" width="700" height="60" rx="10" ry="10" fill="#4A154B"/>
+  <text x="100" y="85" font-family="Arial, sans-serif" font-size="20" fill="white">Slack</text>
+  
+  <!-- 사이드바 -->
+  <rect x="50" y="110" width="200" height="340" fill="#f8f8f8"/>
+  
+  <!-- 멤버 프로필 박스 -->
+  <rect x="280" y="130" width="440" height="120" rx="5" ry="5" fill="#ffffff" stroke="#e0e0e0" stroke-width="1"/>
+  
+  <!-- 프로필 이미지 -->
+  <circle cx="330" cy="170" r="30" fill="#4A154B"/>
+  <text x="330" y="175" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">홍길동</text>
+  
+  <!-- 프로필 내용 -->
+  <text x="380" y="160" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333333">홍길동</text>
+  <text x="380" y="185" font-family="Arial, sans-serif" font-size="14" fill="#666666">@hong.gildong</text>
+  
+  <!-- 컨텍스트 메뉴 -->
+  <rect x="500" y="170" width="180" height="180" rx="5" ry="5" fill="#ffffff" stroke="#e0e0e0" stroke-width="1" filter="drop-shadow(0px 2px 4px rgba(0,0,0,0.1))"/>
+  <text x="515" y="195" font-family="Arial, sans-serif" font-size="14" fill="#333333">사용자 정보 보기</text>
+  <line x1="500" y1="205" x2="680" y2="205" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="515" y="225" font-family="Arial, sans-serif" font-size="14" fill="#333333">다이렉트 메시지 보내기</text>
+  <line x1="500" y1="235" x2="680" y2="235" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="515" y="255" font-family="Arial, sans-serif" font-size="14" fill="#333333">멤버 ID 복사하기</text>
+  <line x1="500" y1="265" x2="680" y2="265" stroke="#e0e0e0" stroke-width="1"/>
+  
+  <!-- 멤버 ID 화면 -->
+  <rect x="280" y="280" width="440" height="70" rx="5" ry="5" fill="#f9f9f9" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="300" y="310" font-family="Arial, sans-serif" font-size="14" fill="#333333">멤버 ID:</text>
+  <rect x="300" y="320" width="220" height="20" rx="3" ry="3" fill="#ffffff" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="310" y="335" font-family="Consolas, monospace" font-size="14" fill="#4A154B">U01ABC123DEF</text>
+  <rect x="530" y="320" width="70" height="20" rx="3" ry="3" fill="#4A154B"/>
+  <text x="545" y="335" font-family="Arial, sans-serif" font-size="12" fill="white">복사</text>
+  
+  <!-- 설명 텍스트 -->
+  <text x="300" y="380" font-family="Arial, sans-serif" font-size="16" fill="#333333" font-weight="bold">슬랙 멤버 ID 찾는 방법:</text>
+  <text x="300" y="405" font-family="Arial, sans-serif" font-size="14" fill="#555555">1. 사용자 이름을 클릭하여 프로필 보기</text>
+  <text x="300" y="425" font-family="Arial, sans-serif" font-size="14" fill="#555555">2. 프로필에서 [멤버 ID 복사하기] 메뉴 선택</text>
+  <text x="300" y="445" font-family="Arial, sans-serif" font-size="14" fill="#555555">3. 필요한 곳에 붙여넣기</text>
+  
+  <!-- 화살표 표시 -->
+  <path d="M540 255 L560 270 L540 285 Z" fill="#4A154B"/>
+</svg>

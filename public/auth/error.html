@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인증 오류</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+            <h1 class="text-2xl font-bold mb-4 text-red-600">인증 오류</h1>
+            <p class="mb-4" id="errorMessage">인증 과정에서 오류가 발생했습니다.</p>
+            <a href="/" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                홈으로 돌아가기
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // URL에서 에러 메시지 파라미터 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get('message');
+        
+        if (message) {
+            const errorMessages = {
+                'slack_oauth_denied': 'Slack 인증이 거부되었습니다.',
+                'server_error': '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+                'invalid_token': '유효하지 않은 토큰입니다.'
+            };
+            
+            document.getElementById('errorMessage').textContent = errorMessages[message] || '알 수 없는 오류가 발생했습니다.';
+        }
+    </script>
+</body>
+</html>
