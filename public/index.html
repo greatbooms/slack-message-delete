@@ -132,6 +132,29 @@
             <input type="number" name="limit" value="1000"
                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">
+              이메일 주소
+              <span class="inline-block relative ml-1">
+                <svg class="h-4 w-4 text-gray-500 cursor-help" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                     fill="currentColor">
+                  <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                        clip-rule="evenodd" />
+                </svg>
+                <div
+                  class="tooltip-text absolute z-10 hidden bg-black text-white text-xs rounded p-2 w-60 -ml-24 bottom-full mb-1">
+                  내보낸 대화 내용을 받을 이메일 주소를 입력하세요.
+                  <span
+                    class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-black border-r-transparent border-l-transparent border-b-transparent"></span>
+                </div>
+              </span>
+            </label>
+            <input type="email" name="email"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                   placeholder="example@example.com"
+                   required>
+          </div>
           <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">메시지 삭제</button>
         </form>
       </div>
@@ -180,7 +203,111 @@
             <input type="number" name="limit" value="1000"
                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">
+              이메일 주소
+              <span class="inline-block relative ml-1">
+                <svg class="h-4 w-4 text-gray-500 cursor-help" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                     fill="currentColor">
+                  <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                        clip-rule="evenodd" />
+                </svg>
+                <div
+                  class="tooltip-text absolute z-10 hidden bg-black text-white text-xs rounded p-2 w-60 -ml-24 bottom-full mb-1">
+                  내보낸 대화 내용을 받을 이메일 주소를 입력하세요.
+                  <span
+                    class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-black border-r-transparent border-l-transparent border-b-transparent"></span>
+                </div>
+              </span>
+            </label>
+            <input type="email" name="email"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                   placeholder="example@example.com"
+                   required>
+          </div>
           <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">메시지 삭제</button>
+        </form>
+      </div>
+
+      <!-- 슬랙 대화 내용 내보내기 -->
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">슬랙 대화 내용 내보내기</h2>
+        <form id="exportConversation" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">대상 타입</label>
+            <select name="targetType"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required>
+              <option value="">선택하세요</option>
+              <option value="channel">채널</option>
+              <option value="user">사용자 (DM)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">
+              대상 ID
+              <span class="inline-block relative ml-1">
+                <svg class="h-4 w-4 text-gray-500 cursor-help" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                     fill="currentColor">
+                  <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                        clip-rule="evenodd" />
+                </svg>
+                <div
+                  class="tooltip-text absolute z-10 hidden bg-black text-white text-xs rounded p-2 w-60 -ml-24 bottom-full mb-1">
+                  채널 ID (C로 시작, 예: C01ABC123DEF) 또는<br>
+                  사용자 ID (U로 시작, 예: U01ABC123DEF)를 입력하세요.<br>
+                  <a href="#" class="text-blue-300 underline" id="showMemberIdHelp">자세한 방법 보기</a>
+                  <span
+                    class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-black border-r-transparent border-l-transparent border-b-transparent"></span>
+                </div>
+              </span>
+            </label>
+            <input type="text" name="targetId"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                   placeholder="채널 ID (C...) 또는 사용자 ID (U...)"
+                   required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">
+              이메일 주소
+              <span class="inline-block relative ml-1">
+                <svg class="h-4 w-4 text-gray-500 cursor-help" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                     fill="currentColor">
+                  <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                        clip-rule="evenodd" />
+                </svg>
+                <div
+                  class="tooltip-text absolute z-10 hidden bg-black text-white text-xs rounded p-2 w-60 -ml-24 bottom-full mb-1">
+                  내보낸 대화 내용을 받을 이메일 주소를 입력하세요.
+                  <span
+                    class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-black border-r-transparent border-l-transparent border-b-transparent"></span>
+                </div>
+              </span>
+            </label>
+            <input type="email" name="email"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                   placeholder="example@example.com"
+                   required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">이 날짜 이전 메시지 내보내기 (선택사항)</label>
+            <input type="datetime-local" name="olderThan"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">이 날짜 이후 메시지 내보내기 (선택사항)</label>
+            <input type="datetime-local" name="newerThan"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">최대 메시지 개수</label>
+            <input type="number" name="limit" value="1000"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+          </div>
+          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">대화 내용 내보내기</button>
         </form>
       </div>
     </div>
@@ -217,21 +344,21 @@
 <script>
   // 쿠키에서 값 가져오기
   function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop().split(';').shift()
   }
 
   // 초기화
   function init() {
-    const userId = getCookie('slackUserId');
-    const isAuthenticated = getCookie('slackAuthenticated');
+    const userId = getCookie('slackUserId')
+    const isAuthenticated = getCookie('slackAuthenticated')
 
     if (userId && isAuthenticated === 'true') {
-      document.getElementById('userInfo').classList.remove('hidden');
-      document.getElementById('userId').textContent = userId;
-      document.getElementById('authSection').classList.add('hidden');
-      document.getElementById('mainContent').classList.remove('hidden');
+      document.getElementById('userInfo').classList.remove('hidden')
+      document.getElementById('userId').textContent = userId
+      document.getElementById('authSection').classList.add('hidden')
+      document.getElementById('mainContent').classList.remove('hidden')
     }
   }
 
@@ -239,65 +366,65 @@
   async function apiCall(endpoint, data) {
     try {
       // 요청 시작 메시지 표시
-      const loadingMessage = document.createElement('div');
-      loadingMessage.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50 notification';
-      loadingMessage.id = 'loadingMessage';
-      loadingMessage.innerHTML = '요청 처리 중... <span class="loading-dots"></span>';
-      document.body.appendChild(loadingMessage);
+      const loadingMessage = document.createElement('div')
+      loadingMessage.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50 notification'
+      loadingMessage.id = 'loadingMessage'
+      loadingMessage.innerHTML = '요청 처리 중... <span class="loading-dots"></span>'
+      document.body.appendChild(loadingMessage)
 
       // API 요청 보내기
-      const response = await axios.post(endpoint, data);
+      const response = await axios.post(endpoint, data)
 
       // 로딩 메시지 제거
-      const loadingElement = document.getElementById('loadingMessage');
+      const loadingElement = document.getElementById('loadingMessage')
       if (loadingElement) {
-        loadingElement.remove();
+        loadingElement.remove()
       }
 
       // 결과 표시 (성공)
-      const result = `성공: ${response.data.success}개 삭제됨, 실패: ${response.data.failed}개`;
-      showNotification(result, 'success');
+      // const result = `성공: ${response.data.success}개 삭제됨, 실패: ${response.data.failed}개`;
+      // showNotification(result, 'success');
 
       // 삭제 결과가 없는 경우 추가 안내
-      if (response.data.success === 0 && response.data.failed === 0) {
-        showNotification('삭제할 메시지를 찾지 못했습니다. 입력한 정보를 확인해주세요.', 'warning');
-      }
+      // if (response.data.success === 0 && response.data.failed === 0) {
+      //   showNotification('삭제할 메시지를 찾지 못했습니다. 입력한 정보를 확인해주세요.', 'warning');
+      // }
 
-      return response.data;
+      return response.data
     } catch (error) {
       // 로딩 메시지 제거
-      const loadingElement = document.getElementById('loadingMessage');
+      const loadingElement = document.getElementById('loadingMessage')
       if (loadingElement) {
-        loadingElement.remove();
+        loadingElement.remove()
       }
 
       // 오류 메시지 표시
-      const errorMsg = error.response?.data?.message || error.message || '알 수 없는 오류가 발생했습니다.';
-      showNotification(`오류: ${errorMsg}`, 'error');
+      const errorMsg = error.response?.data?.message || error.message || '알 수 없는 오류가 발생했습니다.'
+      showNotification(`오류: ${errorMsg}`, 'error')
 
       // Rate limiting 오류일 경우 추가 안내
       if (errorMsg.includes('rate limiting') || errorMsg.includes('ratelimited')) {
-        showNotification('Slack API 요청 제한에 도달했습니다. 잠시 후 다시 시도해주세요.', 'warning');
+        showNotification('Slack API 요청 제한에 도달했습니다. 잠시 후 다시 시도해주세요.', 'warning')
       }
 
-      throw error;
+      throw error
     }
   }
 
   // 알림 표시 함수
   function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
+    const notification = document.createElement('div')
 
     // 타입에 따른 스타일 설정
-    let bgColor = 'bg-green-500'; // 기본 성공
+    let bgColor = 'bg-green-500' // 기본 성공
     if (type === 'error') {
-      bgColor = 'bg-red-500';
+      bgColor = 'bg-red-500'
     } else if (type === 'warning') {
-      bgColor = 'bg-yellow-500';
+      bgColor = 'bg-yellow-500'
     }
 
     // 닫기 버튼 추가 및 레이아웃 수정
-    notification.className = `fixed bottom-4 right-4 ${bgColor} text-white px-4 py-3 rounded shadow-lg z-50 notification flex items-center justify-between`;
+    notification.className = `fixed bottom-4 right-4 ${bgColor} text-white px-4 py-3 rounded shadow-lg z-50 notification flex items-center justify-between`
     notification.innerHTML = `
     <span>${message}</span>
     <button class="ml-4 text-white hover:text-gray-200 focus:outline-none">
@@ -305,18 +432,18 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
-  `;
+  `
 
-    document.body.appendChild(notification);
+    document.body.appendChild(notification)
 
     // 닫기 버튼 이벤트 리스너 추가
-    const closeButton = notification.querySelector('button');
+    const closeButton = notification.querySelector('button')
     closeButton.addEventListener('click', () => {
-      notification.style.opacity = '0';
+      notification.style.opacity = '0'
       setTimeout(() => {
-        notification.remove();
-      }, 500);
-    });
+        notification.remove()
+      }, 500)
+    })
   }
 
   // 폼 제출 핸들러 설정
@@ -340,110 +467,169 @@
   // });
 
   document.getElementById('deleteDirectMessages').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-    if (data.olderThan) data.olderThan = new Date(data.olderThan).toISOString();
-    if (data.newerThan) data.newerThan = new Date(data.newerThan).toISOString();
+    e.preventDefault()
+    const formData = new FormData(e.target)
+    const data = Object.fromEntries(formData.entries())
+    if (data.olderThan) data.olderThan = new Date(data.olderThan).toISOString()
+    if (data.newerThan) data.newerThan = new Date(data.newerThan).toISOString()
 
     try {
+      if (data.email) {
+        if (!data.email || !data.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+          showNotification('유효한 이메일 주소를 입력해주세요', 'warning')
+          return
+        }
+      }
+
       // 사용자에게 확인 요청
       if (confirm('모든 DM 메시지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-        await apiCall('/slack/delete-direct-messages', data);
+        await apiCall('/slack/delete-direct-messages', data)
+        if (data.email)
+          showNotification(`모든 DM 메시지 삭제가 요청되었습니다. 결과는 ${data.email}로 전송될 예정입니다.`, 'success')
       }
     } catch (error) {
-      console.error('API 호출 중 오류 발생:', error);
+      console.error('API 호출 중 오류 발생:', error)
     }
-  });
+  })
 
   document.getElementById('deleteMessagesWithUser').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-    if (data.olderThan) data.olderThan = new Date(data.olderThan).toISOString();
-    if (data.newerThan) data.newerThan = new Date(data.newerThan).toISOString();
+    e.preventDefault()
+    const formData = new FormData(e.target)
+    const data = Object.fromEntries(formData.entries())
+    if (data.olderThan) data.olderThan = new Date(data.olderThan).toISOString()
+    if (data.newerThan) data.newerThan = new Date(data.newerThan).toISOString()
 
     try {
       // 사용자 ID 검증
       if (!data.otherUserId || !data.otherUserId.startsWith('U')) {
-        showNotification('유효한 슬랙 멤버 ID를 입력해주세요 (예: U01ABC123DEF)', 'warning');
-        return;
+        showNotification('유효한 슬랙 멤버 ID를 입력해주세요 (예: U01ABC123DEF)', 'warning')
+        return
+      }
+
+      if (data.email) {
+        if (!data.email || !data.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+          showNotification('유효한 이메일 주소를 입력해주세요', 'warning')
+          return
+        }
       }
 
       // 사용자에게 확인 요청
       if (confirm(`사용자 ID ${data.otherUserId}와의 모든 DM 메시지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
-        await apiCall('/slack/delete-messages-with-user', data);
+        await apiCall('/slack/delete-messages-with-user', data)
+        if (data.email)
+          showNotification(`특정 사용자와의 DM 메시지 삭제가 요청되었습니다. 결과는 ${data.email}로 전송될 예정입니다.`, 'success')
       }
     } catch (error) {
-      console.error('API 호출 중 오류 발생:', error);
+      console.error('API 호출 중 오류 발생:', error)
     }
-  });
+  })
 
   // 초기화 실행
-  init();
+  init()
 
   // 툴팁 기능 구현
-  const tooltipTriggers = document.querySelectorAll('svg.cursor-help');
+  const tooltipTriggers = document.querySelectorAll('svg.cursor-help')
   tooltipTriggers.forEach(trigger => {
     trigger.addEventListener('mouseenter', () => {
-      const tooltip = trigger.nextElementSibling;
-      tooltip.classList.remove('hidden');
-    });
+      const tooltip = trigger.nextElementSibling
+      tooltip.classList.remove('hidden')
+    })
 
     trigger.addEventListener('mouseleave', () => {
-      const tooltip = trigger.nextElementSibling;
+      const tooltip = trigger.nextElementSibling
       // 마우스가 툴팁 위에 있지 않으면 숨김
       setTimeout(() => {
         if (!tooltip.matches(':hover')) {
-          tooltip.classList.add('hidden');
+          tooltip.classList.add('hidden')
         }
-      }, 300);
-    });
-  });
+      }, 300)
+    })
+  })
 
   // 툴팁에서 마우스가 벗어났을 때 처리
   document.querySelectorAll('.tooltip-text').forEach(tooltip => {
     tooltip.addEventListener('mouseleave', () => {
-      tooltip.classList.add('hidden');
-    });
-  });
+      tooltip.classList.add('hidden')
+    })
+  })
 
   // 모달 관련 기능 구현
-  const showMemberIdHelp = document.getElementById('showMemberIdHelp');
-  const memberIdHelpModal = document.getElementById('memberIdHelpModal');
-  const closeModal = document.getElementById('closeModal');
-  const closeBtnModal = document.getElementById('closeBtnModal');
+  const showMemberIdHelp = document.getElementById('showMemberIdHelp')
+  const memberIdHelpModal = document.getElementById('memberIdHelpModal')
+  const closeModal = document.getElementById('closeModal')
+  const closeBtnModal = document.getElementById('closeBtnModal')
 
   // Data URL로 이미지 생성 (실제로는 서버에 업로드된 이미지 경로를 사용하는 것이 좋습니다)
   // 이 부분은 별도로 이미지를 서버에 업로드하거나 다른 방식으로 제공해야 합니다
-  const memberIdImage = document.getElementById('memberIdImage');
+  const memberIdImage = document.getElementById('memberIdImage')
 
   showMemberIdHelp.addEventListener('click', (e) => {
-    e.preventDefault();
-    memberIdHelpModal.classList.remove('hidden');
-  });
+    e.preventDefault()
+    memberIdHelpModal.classList.remove('hidden')
+  })
 
   closeModal.addEventListener('click', () => {
-    memberIdHelpModal.classList.add('hidden');
-  });
+    memberIdHelpModal.classList.add('hidden')
+  })
 
   closeBtnModal.addEventListener('click', () => {
-    memberIdHelpModal.classList.add('hidden');
-  });
+    memberIdHelpModal.classList.add('hidden')
+  })
 
   // 모달 외부 클릭 시 닫기
   memberIdHelpModal.addEventListener('click', (e) => {
     if (e.target === memberIdHelpModal) {
-      memberIdHelpModal.classList.add('hidden');
+      memberIdHelpModal.classList.add('hidden')
     }
-  });
+  })
 
   // ESC 키로 모달 닫기
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !memberIdHelpModal.classList.contains('hidden')) {
-      memberIdHelpModal.classList.add('hidden');
+      memberIdHelpModal.classList.add('hidden')
     }
-  });
+  })
+
+  // 슬랙 대화 내용 내보내기 이벤트 리스너
+  document.getElementById('exportConversation').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const formData = new FormData(e.target)
+    const data = Object.fromEntries(formData.entries())
+
+    // 날짜 데이터 ISO 문자열로 변환
+    if (data.olderThan) data.olderThan = new Date(data.olderThan).toISOString()
+    if (data.newerThan) data.newerThan = new Date(data.newerThan).toISOString()
+
+    // 유효성 검사
+    if (!data.targetId) {
+      showNotification('대상 ID는 필수입니다', 'warning')
+      return
+    }
+
+    if (!data.email || !data.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      showNotification('유효한 이메일 주소를 입력해주세요', 'warning')
+      return
+    }
+
+    try {
+      // 타입 확인
+      if (data.targetType === 'channel' && !data.targetId.startsWith('C')) {
+        showNotification('채널 ID는 C로 시작해야 합니다 (예: C01ABC123DEF)', 'warning')
+        return
+      } else if (data.targetType === 'user' && !data.targetId.startsWith('U')) {
+        showNotification('사용자 ID는 U로 시작해야 합니다 (예: U01ABC123DEF)', 'warning')
+        return
+      }
+
+      const response = await apiCall('/slack/export-conversation', data)
+
+      if (response) {
+        showNotification(`대화 내용 내보내기가 요청되었습니다. 결과는 ${data.email}로 전송될 예정입니다.`, 'success')
+      }
+    } catch (error) {
+      console.error('API 호출 중 오류 발생:', error)
+    }
+  })
 </script>
 </body>
 </html>

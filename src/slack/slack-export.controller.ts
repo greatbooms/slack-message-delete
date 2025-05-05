@@ -63,15 +63,16 @@ export class SlackExportController {
     const options = {
       olderThan: olderThan ? new Date(olderThan) : undefined,
       newerThan: newerThan ? new Date(newerThan) : undefined,
+      targetType,
       limit,
     }
 
-    if (targetType === 'channel') {
-      return this.slackExportService.exportChannelConversation(userToken, targetId, email, options)
-    } else if (targetType === 'user') {
-      return this.slackExportService.exportUserConversation(userToken, targetId, email, options)
-    } else {
-      throw new BadRequestException('targetType은 "channel" 또는 "user"여야 합니다')
-    }
+    this.slackExportService
+      .exportUserConversation(userToken, targetId, email, options)
+      .then(result => {
+        console.log(result)
+      })
+
+    return { success: true, messageCount: 0 }
   }
 }

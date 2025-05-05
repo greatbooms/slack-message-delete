@@ -8,10 +8,14 @@ import {
 } from '@nestjs/common'
 import { SlackService } from './slack.service'
 import { Request } from 'express'
+import { SlackExportService } from './slack-export.service'
 
 @Controller('slack')
 export class SlackController {
-  constructor(private readonly slackService: SlackService) {}
+  constructor(
+    private readonly slackService: SlackService,
+    private readonly slackExportService: SlackExportService,
+  ) {}
 
   private getUserToken(req: Request): string {
     const token = req.cookies?.slackToken
@@ -77,18 +81,36 @@ export class SlackController {
   @Post('delete-direct-messages')
   async deleteDirectMessages(
     @Req() req: Request,
-    @Body() body: { olderThan?: string; newerThan?: string; limit?: number },
+    @Body() body: { olderThan?: string; newerThan?: string; limit?: number; email?: string },
   ) {
-    const { olderThan, newerThan, limit } = body
+    const { olderThan, newerThan, limit, email } = body
 
     const userToken = this.getUserToken(req)
     const userId = this.getUserId(req) // 쿠키에서 사용자 ID 가져오기
 
-    return this.slackService.deleteAllUserDirectMessages(userToken, userId, {
-      olderThan: olderThan ? new Date(olderThan) : undefined,
-      newerThan: newerThan ? new Date(newerThan) : undefined,
-      limit,
-    })
+    this.slackService
+      .deleteAllUserDirectMessages(userToken, userId, {
+        olderThan: olderThan ? new Date(olderThan) : undefined,
+        newerThan: newerThan ? new Date(newerThan) : undefined,
+        limit,
+      })
+      .then(async result => {
+        console.log(result)
+        if (result.length > 0 && email) {
+          let body = ''
+          result.forEach(message => {
+            body += `채널명 : ${message.name}\n`
+            body += `삭제한 메세지 수: ${message.success}\n`
+            body += `삭제실패 메세지 수: ${message.failed}\n`
+          })
+
+          await this.slackExportService.sendEmail(email, 'slack-delete-messages', body, '')
+        }
+      })
+
+    return {
+      message: '삭제 요청이 완료되었습니다. 결과는 이메일로 발송됩니다.',
+    }
   }
 
   @Post('delete-messages-with-user')
@@ -100,9 +122,10 @@ export class SlackController {
       olderThan?: string
       newerThan?: string
       limit?: number
+      email?: string // 결과를 받을 이메일
     },
   ) {
-    const { otherUserId, olderThan, newerThan, limit } = body
+    const { otherUserId, olderThan, newerThan, limit, email } = body
 
     if (!otherUserId) {
       throw new BadRequestException('상대방 사용자 ID가 필요합니다')
@@ -111,10 +134,27 @@ export class SlackController {
     const userToken = this.getUserToken(req)
     const myUserId = this.getUserId(req) // 쿠키에서 사용자 ID 가져오기
 
-    return this.slackService.deleteDirectMessagesWithUser(userToken, myUserId, otherUserId, {
-      olderThan: olderThan ? new Date(olderThan) : undefined,
-      newerThan: newerThan ? new Date(newerThan) : undefined,
-      limit,
-    })
+    this.slackService
+      .deleteDirectMessagesWithUser(userToken, myUserId, otherUserId, {
+        olderThan: olderThan ? new Date(olderThan) : undefined,
+        newerThan: newerThan ? new Date(newerThan) : undefined,
+        limit,
+      })
+      .then(async result => {
+        if (result.length > 0 && email) {
+          let body = ''
+          result.forEach(message => {
+            body += `채널명 : ${message.name}\n`
+            body += `삭제한 메세지 수: ${message.success}\n`
+            body += `삭제실패 메세지 수: ${message.failed}\n`
+          })
+
+          await this.slackExportService.sendEmail(email, 'slack-delete-messages', body, '')
+        }
+      })
+
+    return {
+      message: '삭제 요청이 완료되었습니다. 결과는 이메일로 발송됩니다.',
+    }
   }
 }

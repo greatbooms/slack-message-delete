@@ -177,8 +177,9 @@ export class SlackService {
       newerThan?: Date
       limit?: number
     },
-  ): Promise<{ success: number; failed: number }> {
+  ): Promise<{ name: string; id: string; success: number; failed: number }[]> {
     const webClient = this.getWebClient(userToken)
+    const totalChannelNames: { name: string; id: string; success: number; failed: number }[] = []
 
     try {
       // 사용자의 모든 DM 채널 가져오기 (페이지네이션 적용)
@@ -205,13 +206,10 @@ export class SlackService {
 
       if (allChannels.length === 0) {
         this.logger.warn(`사용자 ${userId}의 DM 채널을 찾지 못했습니다.`)
-        return { success: 0, failed: 0 }
+        return []
       }
 
       console.log(`총 ${allChannels.length}개의 DM 채널을 찾았습니다.`)
-
-      let totalSuccess = 0
-      let totalFailed = 0
 
       // 각 DM 채널에서 메시지 삭제
       for (const channel of allChannels) {
@@ -219,13 +217,20 @@ export class SlackService {
           `채널 ${channel.id} (${channel.is_im ? '개인 DM' : '그룹 DM'})에서 메시지 삭제 시작...`,
         )
 
-        const result = await this.deleteMessages(userToken, channel.id, {
-          userId, // 자신의 메시지만 삭제
-          ...options,
+        // const result = await this.deleteMessages(userToken, channel.id, {
+        //   userId, // 자신의 메시지만 삭제
+        //   ...options,
+        // })
+        const result = {
+          success: 0,
+          failed: 0,
+        }
+        totalChannelNames.push({
+          name: channel.name,
+          id: channel.id,
+          success: result.success,
+          failed: result.failed,
         })
-
-        totalSuccess += result.success
-        totalFailed += result.failed
 
         console.log(`채널 ${channel.id} 삭제 결과: 성공=${result.success}, 실패=${result.failed}`)
 
@@ -234,7 +239,7 @@ export class SlackService {
         await new Promise(resolve => setTimeout(resolve, delayTime))
       }
 
-      return { success: totalSuccess, failed: totalFailed }
+      return totalChannelNames
     } catch (error) {
       this.logger.error(`DM 메시지 삭제 중 오류 발생: ${error.message}`, error.stack)
       throw error
@@ -250,8 +255,9 @@ export class SlackService {
       newerThan?: Date
       limit?: number
     },
-  ): Promise<{ success: number; failed: number }> {
+  ): Promise<{ name: string; id: string; success: number; failed: number }[]> {
     const webClient = this.getWebClient(userToken)
+    const totalChannelNames: { name: string; id: string; success: number; failed: number }[] = []
 
     try {
       // 사용자의 모든 DM 채널 가져오기 (페이지네이션 적용)
@@ -317,6 +323,7 @@ export class SlackService {
 
             // 특정 사용자가 포함되어 있는지 확인
             if (membersResponse.members && membersResponse.members.includes(otherUserId)) {
+              totalChannelNames.push({ name: channel.name, id: channel.id, success: 0, failed: 0 })
               targetChannelIds.push(channel.id)
               console.log(
                 `그룹 DM channel found: ${channel.id}, name: ${channel.name || '이름 없음'}`,
@@ -330,11 +337,8 @@ export class SlackService {
 
       if (targetChannelIds.length === 0) {
         this.logger.warn(`${otherUserId}와의 DM 채널을 찾지 못했습니다.`)
-        return { success: 0, failed: 0 } // 채널을 찾지 못함
+        return [] // 채널을 찾지 못함
       }
-
-      let totalSuccess = 0
-      let totalFailed = 0
 
       // 찾은 모든 채널에서 메시지 삭제
       for (const channelId of targetChannelIds) {
@@ -344,8 +348,12 @@ export class SlackService {
           ...options,
         })
 
-        totalSuccess += result.success
-        totalFailed += result.failed
+        totalChannelNames.forEach(channel => {
+          if (channel.id === channelId) {
+            channel.success = result.success
+            channel.failed = result.failed
+          }
+        })
 
         console.log(`채널 ${channelId} 삭제 결과: 성공=${result.success}, 실패=${result.failed}`)
 
@@ -353,7 +361,7 @@ export class SlackService {
         await new Promise(resolve => setTimeout(resolve, 2000))
       }
 
-      return { success: totalSuccess, failed: totalFailed }
+      return totalChannelNames
     } catch (error) {
       this.logger.error(`특정 사용자와의 DM 삭제 중 오류 발생: ${error.message}`, error.stack)
       throw error

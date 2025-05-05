@@ -24,8 +24,6 @@ export class SlackOauthController {
       path: '/',
     })
 
-    console.log(`Cookie state: ${state}`)
-
     // 슬랙 인증 URL로 리다이렉트
     const authUrl = this.slackOauthService.getAuthorizationUrl(state)
     return res.redirect(authUrl)
