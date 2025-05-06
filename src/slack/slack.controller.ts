@@ -88,25 +88,15 @@ export class SlackController {
     const userToken = this.getUserToken(req)
     const userId = this.getUserId(req) // 쿠키에서 사용자 ID 가져오기
 
+    // 이메일 전송 로직이 서비스로 이동되었으므로 여기서는 결과만 반환
     this.slackService
       .deleteAllUserDirectMessages(userToken, userId, {
         olderThan: olderThan ? new Date(olderThan) : undefined,
         newerThan: newerThan ? new Date(newerThan) : undefined,
         limit,
+        email,
       })
-      .then(async result => {
-        console.log(result)
-        if (result.length > 0 && email) {
-          let body = ''
-          result.forEach(message => {
-            body += `채널명 : ${message.name}\n`
-            body += `삭제한 메세지 수: ${message.success}\n`
-            body += `삭제실패 메세지 수: ${message.failed}\n`
-          })
-
-          await this.slackExportService.sendEmail(email, 'slack-delete-messages', body, '')
-        }
-      })
+      .then(result => console.log(result))
 
     return {
       message: '삭제 요청이 완료되었습니다. 결과는 이메일로 발송됩니다.',
@@ -134,24 +124,15 @@ export class SlackController {
     const userToken = this.getUserToken(req)
     const myUserId = this.getUserId(req) // 쿠키에서 사용자 ID 가져오기
 
+    // 이메일 전송 로직이 서비스로 이동되었으므로 여기서는 결과만 반환
     this.slackService
       .deleteDirectMessagesWithUser(userToken, myUserId, otherUserId, {
         olderThan: olderThan ? new Date(olderThan) : undefined,
         newerThan: newerThan ? new Date(newerThan) : undefined,
         limit,
+        email,
       })
-      .then(async result => {
-        if (result.length > 0 && email) {
-          let body = ''
-          result.forEach(message => {
-            body += `채널명 : ${message.name}\n`
-            body += `삭제한 메세지 수: ${message.success}\n`
-            body += `삭제실패 메세지 수: ${message.failed}\n`
-          })
-
-          await this.slackExportService.sendEmail(email, 'slack-delete-messages', body, '')
-        }
-      })
+      .then(result => console.log(result))
 
     return {
       message: '삭제 요청이 완료되었습니다. 결과는 이메일로 발송됩니다.',

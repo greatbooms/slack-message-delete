@@ -1,28 +1,13 @@
 // src/slack/slack.service.ts
 import { Injectable, Logger } from '@nestjs/common'
 import { WebClient } from '@slack/web-api'
+import { SlackUtilsService } from './slack-utils.service'
 
 @Injectable()
 export class SlackService {
   private readonly logger = new Logger(SlackService.name)
 
-  constructor() {}
-
-  // WebClient를 동적으로 생성하는 메서드
-  private getWebClient(userToken: string): WebClient {
-    return new WebClient(userToken, {
-      // 재시도 메커니즘 설정
-      retryConfig: {
-        retries: 3, // 최대 3회 재시도
-        factor: 2, // 지수적 백오프 (2의 제곱으로 증가)
-        minTimeout: 2000, // 최소 대기 시간 (2초)
-        maxTimeout: 30000, // 최대 대기 시간 (30초)
-        randomize: true, // 지터 추가
-      },
-      // 요청 타임아웃 증가
-      timeout: 30000, // 30초
-    })
-  }
+  constructor(private slackUtilsService: SlackUtilsService) {}
 
   async deleteMessages(
     userToken: string,
@@ -41,7 +26,7 @@ export class SlackService {
     let success = 0
     let failed = 0
 
-    const webClient = this.getWebClient(userToken)
+    const webClient = this.slackUtilsService.getWebClient(userToken)
 
     try {
       // 메시지 검색 및 삭제 반복
@@ -138,7 +123,7 @@ export class SlackService {
       limit?: number
     },
   ): Promise<{ success: number; failed: number }> {
-    const webClient = this.getWebClient(userToken)
+    const webClient = this.slackUtilsService.getWebClient(userToken)
 
     try {
       // 사용자가 참여한 모든 채널 목록 가져오기
@@ -176,9 +161,10 @@ export class SlackService {
       olderThan?: Date
       newerThan?: Date
       limit?: number
+      email?: string
     },
   ): Promise<{ name: string; id: string; success: number; failed: number }[]> {
-    const webClient = this.getWebClient(userToken)
+    const webClient = this.slackUtilsService.getWebClient(userToken)
     const totalChannelNames: { name: string; id: string; success: number; failed: number }[] = []
 
     try {
@@ -217,16 +203,13 @@ export class SlackService {
           `채널 ${channel.id} (${channel.is_im ? '개인 DM' : '그룹 DM'})에서 메시지 삭제 시작...`,
         )
 
-        // const result = await this.deleteMessages(userToken, channel.id, {
-        //   userId, // 자신의 메시지만 삭제
-        //   ...options,
-        // })
-        const result = {
-          success: 0,
-          failed: 0,
-        }
+        const result = await this.deleteMessages(userToken, channel.id, {
+          userId, // 자신의 메시지만 삭제
+          ...options,
+        })
+        const channelName = await this.slackUtilsService.getChannelInfo(webClient, channel.id)
         totalChannelNames.push({
-          name: channel.name,
+          name: channelName.name,
           id: channel.id,
           success: result.success,
           failed: result.failed,
@@ -237,6 +220,18 @@ export class SlackService {
         // Rate limiting 방지를 위한 딜레이 - 채널이 많을수록 더 짧게 (하지만 최소 1초)
         const delayTime = Math.max(1000, Math.min(3000, 10000 / allChannels.length))
         await new Promise(resolve => setTimeout(resolve, delayTime))
+      }
+
+      // 이메일 전송 로직 (필요한 경우)
+      if (options?.email && totalChannelNames.length > 0) {
+        let body = ''
+        totalChannelNames.forEach(message => {
+          body += `채널명 : ${message.name}\n`
+          body += `삭제한 메세지 수: ${message.success}\n`
+          body += `삭제실패 메세지 수: ${message.failed}\n\n`
+        })
+
+        await this.slackUtilsService.sendEmail(options.email, 'slack-delete-messages', body, '')
       }
 
       return totalChannelNames
@@ -254,9 +249,10 @@ export class SlackService {
       olderThan?: Date
       newerThan?: Date
       limit?: number
+      email?: string
     },
   ): Promise<{ name: string; id: string; success: number; failed: number }[]> {
-    const webClient = this.getWebClient(userToken)
+    const webClient = this.slackUtilsService.getWebClient(userToken)
     const totalChannelNames: { name: string; id: string; success: number; failed: number }[] = []
 
     try {
@@ -292,6 +288,12 @@ export class SlackService {
         })
 
         if (dmResponse.ok && dmResponse.channel) {
+          totalChannelNames.push({
+            name: dmResponse.channel['name'] || '이름 없음',
+            id: dmResponse.channel.id,
+            success: 0,
+            failed: 0,
+          })
           targetChannelIds.push(dmResponse.channel.id)
           console.log(`Direct channel found: ${dmResponse.channel.id}`)
         }
@@ -308,6 +310,7 @@ export class SlackService {
 
         // 1:1 DM 채널이면서 상대방이 otherUserId인 경우
         if (channel.is_im && channel.user === otherUserId) {
+          totalChannelNames.push({ name: channel.name, id: channel.id, success: 0, failed: 0 })
           targetChannelIds.push(channel.id)
           console.log(`1:1 DM channel found: ${channel.id}`)
           continue
@@ -343,6 +346,8 @@ export class SlackService {
       // 찾은 모든 채널에서 메시지 삭제
       for (const channelId of targetChannelIds) {
         console.log(`채널 ${channelId}에서 메시지 삭제 시작...`)
+        const channelName = await this.slackUtilsService.getChannelInfo(webClient, channelId)
+
         const result = await this.deleteMessages(userToken, channelId, {
           userId: myUserId, // 자신의 메시지만 삭제
           ...options,
@@ -350,6 +355,7 @@ export class SlackService {
 
         totalChannelNames.forEach(channel => {
           if (channel.id === channelId) {
+            channel.name = channelName.name
             channel.success = result.success
             channel.failed = result.failed
           }
@@ -359,6 +365,18 @@ export class SlackService {
 
         // 채널 간 처리 시 딜레이 추가 (최소 2초)
         await new Promise(resolve => setTimeout(resolve, 2000))
+      }
+
+      // 이메일 전송 로직 (필요한 경우)
+      if (options?.email && totalChannelNames.length > 0) {
+        let body = ''
+        totalChannelNames.forEach(message => {
+          body += `채널명 : ${message.name}\n`
+          body += `삭제한 메세지 수: ${message.success}\n`
+          body += `삭제실패 메세지 수: ${message.failed}\n\n`
+        })
+
+        await this.slackUtilsService.sendEmail(options.email, 'slack-delete-messages', body, '')
       }
 
       return totalChannelNames

@@ -2,24 +2,16 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import {
   WebClient,
-  ErrorCode,
-  WebAPICallError,
   ConversationsHistoryResponse,
   ConversationsRepliesResponse,
   UsersConversationsResponse,
+  ErrorCode,
 } from '@slack/web-api'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
-import * as nodemailer from 'nodemailer'
 import * as archiver from 'archiver'
-
-// --- Define custom interfaces for processed data ---
-
-interface UserInfo {
-  name: string
-  email: string
-}
+import { SlackUtilsService, UserInfo } from './slack-utils.service'
 
 // Interface to hold processed message data including replies and context
 interface ProcessedMessage {
@@ -38,169 +30,11 @@ interface ProcessedMessage {
 @Injectable()
 export class SlackExportService {
   private readonly logger = new Logger(SlackExportService.name)
-  private readonly emailUser: string
-  private readonly emailPass: string
-  private readonly emailFrom: string
 
-  constructor(private configService: ConfigService) {
-    // Consider using environment variable validation (e.g., with Joi)
-    this.emailUser = this.configService.getOrThrow<string>('EMAIL_USER')
-    this.emailPass = this.configService.getOrThrow<string>('EMAIL_PASS')
-    this.emailFrom = this.configService.get<string>('EMAIL_FROM', this.emailUser)
-  }
-
-  // Type the WebClient return
-  private getWebClient(userToken: string): WebClient {
-    return new WebClient(userToken, {
-      retryConfig: {
-        retries: 3,
-        factor: 2,
-        minTimeout: 2000,
-        maxTimeout: 30000,
-        randomize: true,
-      },
-      timeout: 30000,
-    })
-  }
-
-  // Helper to check for Slack API Errors
-  private isSlackError(error: any): error is WebAPICallError {
-    return typeof error === 'object' && error !== null && 'code' in error
-  }
-
-  /**
-   * 채널 ID로 채널 이름 조회
-   */
-  private async getChannelInfo(
-    webClient: WebClient,
-    channelId: string,
-  ): Promise<{ id: string; name: string; isIm: boolean }> {
-    try {
-      const info = await webClient.conversations.info({ channel: channelId })
-      if (info.ok && info.channel) {
-        return {
-          id: info.channel.id!,
-          name: info.channel.name || `channel-${channelId}`,
-          isIm: info.channel.is_im || false,
-        }
-      } else {
-        // Handle cases like restricted channels if needed
-        this.logger.warn(`conversations.info not OK for ${channelId}: ${info.error}`)
-        // Fallback attempt for DM name resolution (less reliable)
-        return await this.resolveDmNameFallback(webClient, channelId)
-      }
-    } catch (error) {
-      if (this.isSlackError(error) && error.code === ErrorCode.PlatformError) {
-        // Platform errors often contain useful data
-        this.logger.error(
-          `Slack Platform Error getting channel info for ${channelId}: ${error.data.error}`,
-          error.stack,
-        )
-        // If it's a DM channel where info failed, try fallback
-        if (channelId.startsWith('D')) {
-          return await this.resolveDmNameFallback(webClient, channelId)
-        }
-      } else {
-        this.logger.error(
-          `Error getting channel info for ${channelId}: ${error.message}`,
-          error.stack,
-        )
-      }
-      return { id: channelId, name: `unknown-${channelId}`, isIm: false }
-    }
-  }
-
-  // Fallback for DM name resolution if conversations.info fails
-  private async resolveDmNameFallback(
-    webClient: WebClient,
-    channelId: string,
-  ): Promise<{ id: string; name: string; isIm: boolean }> {
-    this.logger.log(`Attempting DM name fallback for ${channelId}`)
-    try {
-      // Fetch a single message to find the other user
-      const history = await webClient.conversations.history({ channel: channelId, limit: 1 })
-      if (history.ok && history.messages && history.messages.length > 0) {
-        const message = history.messages[0]
-        // Find the user ID that is NOT the bot/app user (if applicable)
-        // This logic might need refinement based on your app's user context
-        const otherUserId = message.user || message.bot_id // Simplistic assumption
-
-        if (otherUserId) {
-          const userInfo = await this.getUserInfo(webClient, otherUserId) // Reuse user info logic
-          return {
-            id: channelId,
-            name: `DM-${userInfo.name}`, // Use resolved name
-            isIm: true,
-          }
-        }
-      }
-    } catch (error) {
-      this.logger.warn(`DM name fallback failed for ${channelId}: ${error.message}`)
-    }
-    return { id: channelId, name: `DM-unknown-${channelId}`, isIm: true } // Assume IM=true if starts with D
-  }
-
-  /**
-   * 사용자 ID로 사용자 정보 조회 (with Cache)
-   */
-  private async getUserInfoWithCache(
-    webClient: WebClient,
-    userId: string,
-    userInfoCache: Map<string, UserInfo>,
-  ): Promise<UserInfo> {
-    if (userInfoCache.has(userId)) {
-      return userInfoCache.get(userId)!
-    }
-
-    try {
-      const response = await webClient.users.info({ user: userId })
-      if (response.ok && response.user) {
-        const userInfo: UserInfo = {
-          name: response.user.real_name || response.user.name || `user-${userId}`,
-          email: response.user.profile?.email || '',
-        }
-        userInfoCache.set(userId, userInfo)
-        return userInfo
-      } else {
-        this.logger.warn(`users.info not OK for ${userId}: ${response.error}`)
-        const fallbackInfo: UserInfo = { name: `unknown-${userId}`, email: '' }
-        userInfoCache.set(userId, fallbackInfo) // Cache fallback to avoid refetching failures
-        return fallbackInfo
-      }
-    } catch (error) {
-      if (this.isSlackError(error) && error.code === ErrorCode.PlatformError) {
-        this.logger.error(
-          `Slack Platform Error getting user info for ${userId}: ${error.data.error}`,
-          error.stack,
-        )
-      } else {
-        this.logger.error(`Error getting user info for ${userId}: ${error.message}`, error.stack)
-      }
-      const fallbackInfo: UserInfo = { name: `unknown-${userId}`, email: '' }
-      userInfoCache.set(userId, fallbackInfo)
-      return fallbackInfo
-    }
-  }
-
-  // Keep the original getUserInfo if needed elsewhere, or refactor calls to use the cached version
-  private async getUserInfo(webClient: WebClient, userId: string): Promise<UserInfo> {
-    // This could internally use a temporary cache or just call the API directly
-    try {
-      const response = await webClient.users.info({ user: userId })
-      if (response.ok && response.user) {
-        return {
-          name: response.user.real_name || response.user.name || `user-${userId}`,
-          email: response.user.profile?.email || '',
-        }
-      } else {
-        this.logger.warn(`users.info not OK for ${userId}: ${response.error}`)
-        return { name: `unknown-${userId}`, email: '' }
-      }
-    } catch (error) {
-      this.logger.error(`Error getting user info for ${userId}: ${error.message}`, error.stack)
-      return { name: `unknown-${userId}`, email: '' }
-    }
-  }
+  constructor(
+    private configService: ConfigService,
+    private slackUtilsService: SlackUtilsService,
+  ) {}
 
   /**
    * Process replies for a given thread
@@ -236,7 +70,7 @@ export class SlackExportService {
             }
             if (!reply.user || !reply.ts) continue // Skip replies without user or timestamp
 
-            const replierInfo = await this.getUserInfoWithCache(
+            const replierInfo = await this.slackUtilsService.getUserInfoWithCache(
               webClient,
               reply.user,
               userInfoCache,
@@ -396,50 +230,6 @@ export class SlackExportService {
   }
 
   /**
-   * 이메일 전송
-   */
-  async sendEmail(
-    to: string,
-    subject: string,
-    text: string,
-    attachmentPath: string,
-  ): Promise<void> {
-    if (!this.emailUser || !this.emailPass) {
-      this.logger.error('Email credentials are not configured. Cannot send email.')
-      throw new Error('Email service not configured.')
-    }
-    const transporter = nodemailer.createTransport({
-      service: 'gmail', // Consider making this configurable
-      auth: {
-        user: this.emailUser,
-        pass: this.emailPass,
-      },
-    })
-
-    const mailOptions = {
-      from: `"${this.emailFrom}" <${this.emailUser}>`, // Nicer From address
-      to,
-      subject,
-      text,
-      attachments: [
-        {
-          filename: path.basename(attachmentPath),
-          path: attachmentPath,
-        },
-      ],
-    }
-
-    try {
-      const info = await transporter.sendMail(mailOptions)
-      this.logger.log(`Email sent successfully: ${info.response}`)
-    } catch (error) {
-      this.logger.error(`Email sending failed: ${error.message}`)
-      // Depending on requirements, you might want to retry or handle this differently
-      throw error // Re-throw to indicate failure
-    }
-  }
-
-  /**
    * 파일 정리 (임시 파일 및 디렉토리 삭제)
    * @param filePaths 생성된 모든 임시 파일 경로 (텍스트 파일 + ZIP 파일)
    * @param baseTempDir 삭제할 기본 임시 디렉토리
@@ -490,7 +280,7 @@ export class SlackExportService {
     },
   ): Promise<{ success: boolean; messageCount: number }> {
     const { oldest, latest, limit = 1000 } = options || {}
-    const webClient = this.getWebClient(userToken)
+    const webClient = this.slackUtilsService.getWebClient(userToken)
     const userInfoCache = new Map<string, UserInfo>()
     const allFilePaths: string[] = [] // Track all file paths for cleanup
     let baseTempDir: string | null = null // Single temp dir for the whole operation
@@ -505,7 +295,7 @@ export class SlackExportService {
       let targetName = ''
 
       if (options.targetType === 'channel') {
-        const channelInfo = await this.getChannelInfo(webClient, targetId)
+        const channelInfo = await this.slackUtilsService.getChannelInfo(webClient, targetId)
         targetName = channelInfo.name
         this.logger.log(`Starting export for channel: ${targetName} (${targetId})`)
         channelsToProcess.push({
@@ -513,7 +303,11 @@ export class SlackExportService {
           name: channelInfo.name || `channel-${channelInfo.id}`,
         })
       } else if (options.targetType === 'user') {
-        const targetUserInfo = await this.getUserInfoWithCache(webClient, targetId, userInfoCache) // Cache the target user
+        const targetUserInfo = await this.slackUtilsService.getUserInfoWithCache(
+          webClient,
+          targetId,
+          userInfoCache,
+        ) // Cache the target user
         targetName = targetUserInfo.name
         this.logger.log(`Starting export for user: ${targetName} (${targetId})`)
         while (moreConvs) {
@@ -607,7 +401,11 @@ export class SlackExportService {
                   )
                 }
 
-                const userName = await this.getUserInfoWithCache(webClient, msg.user, userInfoCache)
+                const userName = await this.slackUtilsService.getUserInfoWithCache(
+                  webClient,
+                  msg.user,
+                  userInfoCache,
+                )
                 let message = msg.text
                 if (msg.files) {
                   message += '\n\n--- Files ---\n'
@@ -640,7 +438,7 @@ export class SlackExportService {
             // Handle channel-specific errors (e.g., not_in_channel) gracefully
             // Check for PlatformError *before* accessing error.data
             if (
-              this.isSlackError(error) &&
+              this.slackUtilsService.isSlackError(error) &&
               error.code === ErrorCode.PlatformError &&
               error.data?.error === 'not_in_channel'
             ) {
@@ -700,7 +498,7 @@ export class SlackExportService {
 
       finalZipPath = await this.compressFiles(allFilePaths, zipFilePath)
 
-      await this.sendEmail(
+      await this.slackUtilsService.sendEmail(
         userEmail,
         `Slack Conversation Export - ${options.targetType === 'user' ? 'USER' : 'CHANNEL'} (${targetName}) - ${allFilePaths.length} Channels`,
         '',

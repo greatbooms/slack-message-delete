@@ -486,6 +486,8 @@
         await apiCall('/slack/delete-direct-messages', data)
         if (data.email)
           showNotification(`모든 DM 메시지 삭제가 요청되었습니다. 결과는 ${data.email}로 전송될 예정입니다.`, 'success')
+        else
+          showNotification('모든 DM 메시지 삭제가 요청되었습니다.', 'success')
       }
     } catch (error) {
       console.error('API 호출 중 오류 발생:', error)
@@ -518,6 +520,8 @@
         await apiCall('/slack/delete-messages-with-user', data)
         if (data.email)
           showNotification(`특정 사용자와의 DM 메시지 삭제가 요청되었습니다. 결과는 ${data.email}로 전송될 예정입니다.`, 'success')
+        else
+          showNotification('특정 사용자와의 DM 메시지 삭제가 요청되었습니다.', 'success')
       }
     } catch (error) {
       console.error('API 호출 중 오류 발생:', error)
